@@ -141,6 +141,73 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
 
+    input.input-invalid, select.input-invalid {
+      border-color: var(--danger) !important;
+      background-color: #fffafb;
+    }
+
+    input.input-invalid:focus, select.input-invalid:focus {
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+    }
+
+    /* Inline Field Error Messages (shown right underneath fields) */
+    .field-error {
+      display: none;
+      font-size: 0.8rem;
+      color: var(--danger);
+      font-weight: 500;
+      margin-top: 0.35rem;
+      line-height: 1.35;
+    }
+
+    .field-error.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    /* Form Notice Banner (for over-budget notice or confirmation inside the form) */
+    .form-notice {
+      display: none;
+      padding: 0.75rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+
+    .form-notice.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .form-notice.notice-warning {
+      background-color: var(--warning-light);
+      border: 1px solid #fcd34d;
+      color: #92400e;
+    }
+
+    .form-notice.notice-success {
+      background-color: var(--success-light);
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+    }
+
+    .event-notice {
+      display: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-top: 0.4rem;
+    }
+
+    .event-notice.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .event-notice.notice-success {
+      color: var(--success);
+    }
+
     /* Buttons */
     .btn {
       display: inline-flex;
@@ -635,14 +702,17 @@
           <div class="field-group">
             <label for="eventName">Event Name</label>
             <input type="text" id="eventName" value="Annual Club Gala" placeholder="e.g. Spring Mixer">
+            <div id="eventNameError" class="field-error" role="alert"></div>
           </div>
           <div class="field-group">
             <label for="initialBudget">Starting Budget Allocation ($)</label>
             <input type="number" id="initialBudget" value="1000.00" step="0.01" min="0" placeholder="0.00">
+            <div id="initialBudgetError" class="field-error" role="alert"></div>
           </div>
         </div>
         <div>
           <button type="button" class="btn btn-secondary" id="saveEventDetailsBtn">Update Event Details</button>
+          <div id="eventSaveNotice" class="event-notice"></div>
         </div>
       </div>
     </header>
@@ -716,6 +786,7 @@
           <div class="field-group">
             <label for="transDesc">Item Description *</label>
             <input type="text" id="transDesc" placeholder="e.g. Pizza & Drinks, DJ Equipment" required>
+            <div id="transDescError" class="field-error" role="alert"></div>
           </div>
 
           <div class="field-group">
@@ -735,12 +806,16 @@
           <div class="field-group">
             <label for="transAmount">Amount ($) *</label>
             <input type="number" id="transAmount" step="0.01" min="0.01" placeholder="0.00" required>
+            <div id="transAmountError" class="field-error" role="alert"></div>
           </div>
 
           <div class="field-group">
-            <label for="transDate">Date</label>
+            <label for="transDate">Date *</label>
             <input type="date" id="transDate" required>
+            <div id="transDateError" class="field-error" role="alert"></div>
           </div>
+
+          <div id="formNotice" class="form-notice" role="alert"></div>
 
           <button type="submit" class="btn btn-primary" id="addTransBtn">
             Add Transaction
@@ -806,6 +881,9 @@
     const eventNameInput = document.getElementById("eventName");
     const initialBudgetInput = document.getElementById("initialBudget");
     const saveEventDetailsBtn = document.getElementById("saveEventDetailsBtn");
+    const eventNameError = document.getElementById("eventNameError");
+    const initialBudgetError = document.getElementById("initialBudgetError");
+    const eventSaveNotice = document.getElementById("eventSaveNotice");
 
     const statInitialBudget = document.getElementById("statInitialBudget");
     const statEventNameDisplay = document.getElementById("statEventNameDisplay");
@@ -821,9 +899,13 @@
 
     const transactionForm = document.getElementById("transactionForm");
     const transDescInput = document.getElementById("transDesc");
+    const transDescError = document.getElementById("transDescError");
     const transCategoryInput = document.getElementById("transCategory");
     const transAmountInput = document.getElementById("transAmount");
+    const transAmountError = document.getElementById("transAmountError");
     const transDateInput = document.getElementById("transDate");
+    const transDateError = document.getElementById("transDateError");
+    const formNotice = document.getElementById("formNotice");
 
     const transactionsTable = document.getElementById("transactionsTable");
     const transactionsBody = document.getElementById("transactionsBody");
@@ -848,7 +930,62 @@
       return currencyFormatter.format(amount || 0);
     }
 
-    // Friendly Alert System
+    // Inline Field Error Management (renders directly underneath fields)
+    function setFieldError(inputEl, errorEl, message) {
+      if (message) {
+        inputEl.classList.add("input-invalid");
+        errorEl.textContent = message;
+        errorEl.classList.add("active");
+      } else {
+        inputEl.classList.remove("input-invalid");
+        errorEl.textContent = "";
+        errorEl.classList.remove("active");
+      }
+    }
+
+    // Inline Form Notice (shows directly inside the form above the submit button)
+    let formNoticeTimeout = null;
+    function showFormNotice(message, type = "warning", duration = 6000) {
+      clearTimeout(formNoticeTimeout);
+      formNotice.className = `form-notice active notice-${type}`;
+      formNotice.textContent = message;
+      if (duration) {
+        formNoticeTimeout = setTimeout(() => {
+          formNotice.className = "form-notice";
+          formNotice.textContent = "";
+        }, duration);
+      }
+    }
+
+    function hideFormNotice() {
+      clearTimeout(formNoticeTimeout);
+      formNotice.className = "form-notice";
+      formNotice.textContent = "";
+    }
+
+    // Real-time clearing of error messages when the user types
+    transDescInput.addEventListener("input", () => {
+      setFieldError(transDescInput, transDescError, null);
+      hideFormNotice();
+    });
+    transAmountInput.addEventListener("input", () => {
+      setFieldError(transAmountInput, transAmountError, null);
+      hideFormNotice();
+    });
+    transDateInput.addEventListener("input", () => {
+      setFieldError(transDateInput, transDateError, null);
+      hideFormNotice();
+    });
+    eventNameInput.addEventListener("input", () => {
+      setFieldError(eventNameInput, eventNameError, null);
+      eventSaveNotice.className = "event-notice";
+    });
+    initialBudgetInput.addEventListener("input", () => {
+      setFieldError(initialBudgetInput, initialBudgetError, null);
+      eventSaveNotice.className = "event-notice";
+    });
+
+    // Top Alert System (reserved for ledger-wide operations like export & reset)
     let alertTimeout = null;
     function showAlert(message, type = "error", autoDismiss = 6000) {
       clearTimeout(alertTimeout);
@@ -1047,24 +1184,35 @@
     saveEventDetailsBtn.addEventListener("click", () => {
       const name = eventNameInput.value.trim();
       const budgetVal = parseFloat(initialBudgetInput.value);
+      let hasError = false;
 
       if (!name) {
-        showAlert("Please provide a name for this event so your team knows which event is being tracked.", "error");
-        eventNameInput.focus();
-        return;
+        setFieldError(eventNameInput, eventNameError, "Please provide a name for this event so your team knows which event is being tracked.");
+        if (!hasError) { eventNameInput.focus(); hasError = true; }
+      } else {
+        setFieldError(eventNameInput, eventNameError, null);
       }
 
       if (isNaN(budgetVal) || budgetVal < 0) {
-        showAlert("Please enter a valid starting budget of $0.00 or higher.", "error");
-        initialBudgetInput.focus();
-        return;
+        setFieldError(initialBudgetInput, initialBudgetError, "Please enter a valid starting budget of $0.00 or higher.");
+        if (!hasError) { initialBudgetInput.focus(); hasError = true; }
+      } else {
+        setFieldError(initialBudgetInput, initialBudgetError, null);
       }
+
+      if (hasError) return;
 
       state.eventName = name;
       state.initialBudget = budgetVal;
       saveState();
       render();
-      showAlert("Event details updated successfully!", "success", 3000);
+
+      eventSaveNotice.className = "event-notice active notice-success";
+      eventSaveNotice.textContent = "Saved successfully!";
+      setTimeout(() => {
+        eventSaveNotice.className = "event-notice";
+        eventSaveNotice.textContent = "";
+      }, 2500);
     });
 
     // Add Transaction
@@ -1077,22 +1225,33 @@
       const date = transDateInput.value;
       const type = document.querySelector('input[name="transType"]:checked').value;
 
-      // Validations with friendly messages
+      let hasError = false;
+
+      // Validate description inline underneath field
       if (!desc) {
-        showAlert("Oops! Please enter a short description so the committee knows what this item was for.", "error");
-        transDescInput.focus();
-        return;
+        setFieldError(transDescInput, transDescError, "Please enter a short description so the committee knows what this item was for.");
+        if (!hasError) { transDescInput.focus(); hasError = true; }
+      } else {
+        setFieldError(transDescInput, transDescError, null);
       }
 
+      // Validate amount inline underneath field
       if (isNaN(amount) || amount <= 0) {
-        showAlert("Please enter a valid positive amount greater than $0.00.", "error");
-        transAmountInput.focus();
-        return;
+        setFieldError(transAmountInput, transAmountError, "Please enter a valid positive amount greater than $0.00.");
+        if (!hasError) { transAmountInput.focus(); hasError = true; }
+      } else {
+        setFieldError(transAmountInput, transAmountError, null);
       }
 
+      // Validate date inline underneath field
       if (!date) {
-        showAlert("Please select a date for this transaction.", "error");
-        transDateInput.focus();
+        setFieldError(transDateInput, transDateError, "Please select a date for this transaction.");
+        if (!hasError) { transDateInput.focus(); hasError = true; }
+      } else {
+        setFieldError(transDateInput, transDateError, null);
+      }
+
+      if (hasError) {
         return;
       }
 
@@ -1107,12 +1266,12 @@
         const currentRemaining = (state.initialBudget + currentTotalIncome) - currentTotalSpent;
 
         if (amount > currentRemaining) {
-          showAlert(`Heads up! This $${amount.toFixed(2)} expense exceeds your remaining balance of ${formatMoney(currentRemaining)}. The transaction has been recorded so your books stay accurate.`, "warning", 8000);
+          showFormNotice(`Heads up! This ${formatMoney(amount)} expense exceeds your remaining balance of ${formatMoney(currentRemaining)}. The transaction has been recorded so your books stay accurate.`, "warning", 8000);
         } else {
-          showAlert("Transaction added to ledger!", "success", 3000);
+          showFormNotice("Expense recorded successfully!", "success", 3000);
         }
       } else {
-        showAlert("Income transaction recorded!", "success", 3000);
+        showFormNotice("Income recorded successfully!", "success", 3000);
       }
 
       const newTransaction = {
@@ -1132,6 +1291,9 @@
       // Reset form fields
       transDescInput.value = "";
       transAmountInput.value = "";
+      setFieldError(transDescInput, transDescError, null);
+      setFieldError(transAmountInput, transAmountError, null);
+      setFieldError(transDateInput, transDateError, null);
       setTodayDate();
       transDescInput.focus();
     });
