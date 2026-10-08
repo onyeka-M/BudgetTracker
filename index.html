@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Club Event Budget Tracker</title>
+  <style>
+    /* Reset & Base Variables */
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --success: #059669;
+      --success-light: #ecfdf5;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-500: #64748b;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+      --radius: 10px;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--gray-50);
+      color: var(--gray-800);
+      line-height: 1.5;
+      padding: 1rem;
+    }
+
+    .container {
+      max-width: 1060px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      background: #ffffff;
+      padding: 1.75rem 1.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--gray-200);
+      margin-bottom: 1.5rem;
+    }
+
+    .header-top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: var(--gray-500);
+      margin-bottom: 1.25rem;
+    }
+
+    /* Event Config Bar */
+    .event-bar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      align-items: end;
+      background: var(--gray-100);
+      padding: 1rem;
+      border-radius: 8px;
+    }
+
+    @media (max-width: 640px) {
+      .event-bar {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .event-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 640px) {
+      .event-fields {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--gray-700);
+    }
+
+    input, select, button {
+      font-family: inherit;
+      font-size: 0.95rem;
+      border-radius: 6px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    input, select {
+      border: 1px solid var(--gray-300);
+      padding: 0.6rem 0.75rem;
+      background: #ffffff;
+      color: var(--gray-800);
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.6rem 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      gap: 0.4rem;
+      white-space: nowrap;
+      min-height: 42px;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background-color: #ffffff;
+      border-color: var(--gray-300);
+      color: var(--gray-700);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--gray-100);
+      color: var(--gray-900);
+    }
+
+    .btn-danger {
+      background-color: #ffffff;
+      border-color: #fca5a5;
+      color: var(--danger);
+      padding: 0.35rem 0.65rem;
+      font-size: 0.85rem;
+      min-height: auto;
+    }
+
+    .btn-danger:hover {
+      background-color: var(--danger-light);
+      border-color: var(--danger);
+    }
+
+    /* Alert / Friendly Feedback Box */
+    .alert-banner {
+      display: none;
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.25rem;
+      font-size: 0.95rem;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .alert-banner.active {
+      display: flex;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .alert-error {
+      background-color: var(--danger-light);
+      border: 1px solid #fca5a5;
+      color: #991b1b;
+    }
+
+    .alert-warning {
+      background-color: var(--warning-light);
+      border: 1px solid #fcd34d;
+      color: #92400e;
+    }
+
+    .alert-success {
+      background-color: var(--success-light);
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+    }
+
+    .alert-close {
+      background: none;
+      border: none;
+      color: inherit;
+      font-size: 1.2rem;
+      line-height: 1;
+      cursor: pointer;
+      opacity: 0.75;
+      padding: 0 0.25rem;
+    }
+
+    .alert-close:hover {
+      opacity: 1;
+    }
+
+    /* Summary Stat Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: #ffffff;
+      padding: 1.25rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .stat-label {
+      font-size: 0.825rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gray-500);
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .stat-subtext {
+      font-size: 0.8rem;
+      color: var(--gray-500);
+    }
+
+    .stat-card.remaining-positive .stat-value {
+      color: var(--success);
+    }
+
+    .stat-card.remaining-negative .stat-value {
+      color: var(--danger);
+    }
+
+    /* Progress bar */
+    .progress-section {
+      background: #ffffff;
+      padding: 1.25rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .progress-track {
+      background-color: var(--gray-200);
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease, background-color 0.3s ease;
+      border-radius: 999px;
+    }
+
+    .progress-fill.warning {
+      background-color: var(--warning);
+    }
+
+    .progress-fill.danger {
+      background-color: var(--danger);
+    }
+
+    /* Main Grid Layout */
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .layout-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Transaction Form Card */
+    .form-card {
+      background: #ffffff;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .radio-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .radio-option {
+      position: relative;
+    }
+
+    .radio-option input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .radio-label {
+      display: block;
+      text-align: center;
+      padding: 0.6rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    .radio-option input[type="radio"]:checked + .radio-label.expense-label {
+      background-color: var(--danger-light);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .radio-option input[type="radio"]:checked + .radio-label.income-label {
+      background-color: var(--success-light);
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    /* Ledger Table Section */
+    .ledger-card {
+      background: #ffffff;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .ledger-top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .ledger-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .search-input {
+      min-width: 200px;
+    }
+
+    /* Table styles */
+    .table-responsive {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--gray-200);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+
+    thead {
+      background-color: var(--gray-100);
+      color: var(--gray-700);
+    }
+
+    th, td {
+      padding: 0.85rem 1rem;
+      white-space: nowrap;
+    }
+
+    th {
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    tbody tr {
+      border-top: 1px solid var(--gray-200);
+      transition: background-color 0.15s ease;
+    }
+
+    tbody tr:hover {
+      background-color: var(--gray-50);
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-category {
+      background-color: var(--gray-100);
+      color: var(--gray-700);
+      border: 1px solid var(--gray-200);
+    }
+
+    .badge-expense {
+      background-color: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .badge-income {
+      background-color: var(--success-light);
+      color: var(--success);
+    }
+
+    .amount-expense {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    .amount-income {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .running-balance {
+      font-weight: 700;
+    }
+
+    .balance-positive {
+      color: var(--gray-900);
+    }
+
+    .balance-negative {
+      color: var(--danger);
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--gray-500);
+    }
+
+    .empty-state-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .empty-state p {
+      font-size: 0.95rem;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    /* Mobile Responsive Card Ledger (<640px) */
+    @media (max-width: 640px) {
+      .table-responsive {
+        border: none;
+      }
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      thead {
+        display: none; /* Hide traditional table header on mobile */
+      }
+      tbody tr {
+        background: #ffffff;
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        margin-bottom: 0.85rem;
+        padding: 0.85rem;
+        box-shadow: var(--shadow-sm);
+      }
+      td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.45rem 0;
+        border-top: none;
+        white-space: normal;
+      }
+      td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      td:last-child {
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px dashed var(--gray-200);
+        justify-content: flex-end;
+      }
+      td:last-child::before {
+        display: none;
+      }
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+      }
+      header, .progress-section, .ledger-card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+      }
+      .event-bar, .form-card, .ledger-actions, .alert-banner, .btn-danger {
+        display: none !important;
+      }
+      .layout-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="header-top">
+        <h1>Club Event Budget Tracker</h1>
+      </div>
+      <p class="subtitle">Easily manage your club event expenses, track allocated funds, and monitor your running balance in real time.</p>
+
+      <!-- Event Configuration -->
+      <div class="event-bar">
+        <div class="event-fields">
+          <div class="field-group">
+            <label for="eventName">Event Name</label>
+            <input type="text" id="eventName" value="Annual Club Gala" placeholder="e.g. Spring Mixer">
+          </div>
+          <div class="field-group">
+            <label for="initialBudget">Starting Budget Allocation ($)</label>
+            <input type="number" id="initialBudget" value="1000.00" step="0.01" min="0" placeholder="0.00">
+          </div>
+        </div>
+        <div>
+          <button type="button" class="btn btn-secondary" id="saveEventDetailsBtn">Update Event Details</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Friendly Error / Notice Banner -->
+    <div id="alertBanner" class="alert-banner" role="alert" aria-live="polite">
+      <span id="alertMessage"></span>
+      <button type="button" class="alert-close" id="closeAlertBtn" aria-label="Dismiss alert">&times;</button>
+    </div>
+
+    <!-- Summary Cards -->
+    <section class="stats-grid" aria-label="Budget summary">
+      <div class="stat-card">
+        <span class="stat-label">Initial Budget</span>
+        <span class="stat-value" id="statInitialBudget">$0.00</span>
+        <span class="stat-subtext" id="statEventNameDisplay">Annual Club Gala</span>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Total Expenses</span>
+        <span class="stat-value" id="statTotalSpent" style="color: var(--danger);">$0.00</span>
+        <span class="stat-subtext" id="statExpenseCount">0 expense items</span>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Total Income / Funds Added</span>
+        <span class="stat-value" id="statTotalIncome" style="color: var(--success);">$0.00</span>
+        <span class="stat-subtext" id="statIncomeCount">0 income items</span>
+      </div>
+
+      <div class="stat-card remaining-positive" id="remainingCard">
+        <span class="stat-label">Running Balance Left</span>
+        <span class="stat-value" id="statRemaining">$0.00</span>
+        <span class="stat-subtext" id="remainingStatusText">Within budget</span>
+      </div>
+    </section>
+
+    <!-- Budget Progress Bar -->
+    <section class="progress-section" aria-label="Budget usage indicator">
+      <div class="progress-header">
+        <span>Budget Utilization</span>
+        <span id="progressPercentageText">0% spent</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressBar" style="width: 0%;"></div>
+      </div>
+    </section>
+
+    <!-- Main Workspace Grid -->
+    <div class="layout-grid">
+      <!-- Left: Add Item Form -->
+      <section class="form-card" aria-labelledby="formTitle">
+        <h2 class="card-title" id="formTitle">
+          <span>+</span> Record a Transaction
+        </h2>
+        <form id="transactionForm" novalidate>
+          <div class="field-group">
+            <label>Transaction Type</label>
+            <div class="radio-group">
+              <div class="radio-option">
+                <input type="radio" id="typeExpense" name="transType" value="expense" checked>
+                <label for="typeExpense" class="radio-label expense-label">Expense (-)</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" id="typeIncome" name="transType" value="income">
+                <label for="typeIncome" class="radio-label income-label">Income (+)</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="transDesc">Item Description *</label>
+            <input type="text" id="transDesc" placeholder="e.g. Pizza & Drinks, DJ Equipment" required>
+          </div>
+
+          <div class="field-group">
+            <label for="transCategory">Category</label>
+            <select id="transCategory">
+              <option value="Food & Beverages">Food & Beverages</option>
+              <option value="Venue & Space">Venue & Space</option>
+              <option value="Entertainment & Sound">Entertainment & Sound</option>
+              <option value="Decorations & Supplies">Decorations & Supplies</option>
+              <option value="Marketing & Printing">Marketing & Printing</option>
+              <option value="Ticket / Entry Sales">Ticket / Entry Sales</option>
+              <option value="Sponsorship & Club Funds">Sponsorship & Club Funds</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="transAmount">Amount ($) *</label>
+            <input type="number" id="transAmount" step="0.01" min="0.01" placeholder="0.00" required>
+          </div>
+
+          <div class="field-group">
+            <label for="transDate">Date</label>
+            <input type="date" id="transDate" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="addTransBtn">
+            Add Transaction
+          </button>
+        </form>
+      </section>
+
+      <!-- Right: Running Ledger -->
+      <section class="ledger-card" aria-labelledby="ledgerTitle">
+        <div class="ledger-top">
+          <h2 class="card-title" id="ledgerTitle" style="margin-bottom: 0;">
+            Transaction Ledger & Running Balance
+          </h2>
+          <div class="ledger-actions">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search transactions...">
+            <button type="button" class="btn btn-secondary" id="exportCsvBtn" title="Export to spreadsheet">
+              Export CSV
+            </button>
+            <button type="button" class="btn btn-secondary" id="resetBtn" title="Reset all data">
+              Clear All
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table id="transactionsTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th class="text-right">Amount</th>
+                <th class="text-right">Running Total</th>
+                <th class="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="transactionsBody">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+
+          <div id="emptyState" class="empty-state">
+            <span class="empty-state-icon">📋</span>
+            <strong>No transactions recorded yet</strong>
+            <p>Fill out the form on the left to record your first expense or ticket sale.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    const STORAGE_KEY = "club_event_budget_tracker_v1";
+
+    let state = {
+      eventName: "Annual Club Gala",
+      initialBudget: 1000.00,
+      transactions: []
+    };
+
+    // DOM Elements
+    const eventNameInput = document.getElementById("eventName");
+    const initialBudgetInput = document.getElementById("initialBudget");
+    const saveEventDetailsBtn = document.getElementById("saveEventDetailsBtn");
+
+    const statInitialBudget = document.getElementById("statInitialBudget");
+    const statEventNameDisplay = document.getElementById("statEventNameDisplay");
+    const statTotalSpent = document.getElementById("statTotalSpent");
+    const statExpenseCount = document.getElementById("statExpenseCount");
+    const statTotalIncome = document.getElementById("statTotalIncome");
+    const statIncomeCount = document.getElementById("statIncomeCount");
+    const statRemaining = document.getElementById("statRemaining");
+    const remainingCard = document.getElementById("remainingCard");
+    const remainingStatusText = document.getElementById("remainingStatusText");
+    const progressBar = document.getElementById("progressBar");
+    const progressPercentageText = document.getElementById("progressPercentageText");
+
+    const transactionForm = document.getElementById("transactionForm");
+    const transDescInput = document.getElementById("transDesc");
+    const transCategoryInput = document.getElementById("transCategory");
+    const transAmountInput = document.getElementById("transAmount");
+    const transDateInput = document.getElementById("transDate");
+
+    const transactionsTable = document.getElementById("transactionsTable");
+    const transactionsBody = document.getElementById("transactionsBody");
+    const emptyState = document.getElementById("emptyState");
+    const searchInput = document.getElementById("searchInput");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const alertBanner = document.getElementById("alertBanner");
+    const alertMessage = document.getElementById("alertMessage");
+    const closeAlertBtn = document.getElementById("closeAlertBtn");
+
+    // Formatters
+    const currencyFormatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    function formatMoney(amount) {
+      return currencyFormatter.format(amount || 0);
+    }
+
+    // Friendly Alert System
+    let alertTimeout = null;
+    function showAlert(message, type = "error", autoDismiss = 6000) {
+      clearTimeout(alertTimeout);
+      alertBanner.className = `alert-banner active alert-${type}`;
+      alertMessage.textContent = message;
+
+      if (autoDismiss) {
+        alertTimeout = setTimeout(() => {
+          dismissAlert();
+        }, autoDismiss);
+      }
+    }
+
+    function dismissAlert() {
+      alertBanner.classList.remove("active");
+    }
+
+    closeAlertBtn.addEventListener("click", dismissAlert);
+
+    // Persistence
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          state.eventName = parsed.eventName || "Annual Club Gala";
+          state.initialBudget = typeof parsed.initialBudget === "number" ? parsed.initialBudget : 1000.00;
+          state.transactions = Array.isArray(parsed.transactions) ? parsed.transactions : [];
+        }
+      } catch (err) {
+        console.warn("Could not read localStorage:", err);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (err) {
+        console.warn("Could not write localStorage:", err);
+      }
+    }
+
+    // Set today's date in form
+    function setTodayDate() {
+      const today = new Date().toISOString().split("T")[0];
+      transDateInput.value = today;
+    }
+
+    // Calculate Running Balance and Render Everything
+    function render() {
+      // Sync Inputs
+      eventNameInput.value = state.eventName;
+      initialBudgetInput.value = state.initialBudget.toFixed(2);
+      statEventNameDisplay.textContent = state.eventName || "Club Event";
+      statInitialBudget.textContent = formatMoney(state.initialBudget);
+
+      // Calculations
+      let totalExpense = 0;
+      let totalIncome = 0;
+      let expenseCount = 0;
+      let incomeCount = 0;
+
+      // Calculate running balances step-by-step in chronological order
+      let currentRunningBalance = Number(state.initialBudget);
+
+      // We clone and calculate running totals
+      const enrichedTransactions = state.transactions.map((tx) => {
+        const amt = Number(tx.amount) || 0;
+        if (tx.type === "expense") {
+          totalExpense += amt;
+          expenseCount++;
+          currentRunningBalance -= amt;
+        } else {
+          totalIncome += amt;
+          incomeCount++;
+          currentRunningBalance += amt;
+        }
+
+        return {
+          ...tx,
+          runningTotal: currentRunningBalance
+        };
+      });
+
+      const netRemaining = (Number(state.initialBudget) + totalIncome) - totalExpense;
+
+      // Render Summary Cards
+      statTotalSpent.textContent = formatMoney(totalExpense);
+      statExpenseCount.textContent = `${expenseCount} ${expenseCount === 1 ? 'item' : 'items'}`;
+
+      statTotalIncome.textContent = formatMoney(totalIncome);
+      statIncomeCount.textContent = `${incomeCount} ${incomeCount === 1 ? 'item' : 'items'}`;
+
+      statRemaining.textContent = formatMoney(netRemaining);
+
+      if (netRemaining < 0) {
+        remainingCard.className = "stat-card remaining-negative";
+        remainingStatusText.textContent = `Over budget by ${formatMoney(Math.abs(netRemaining))}`;
+      } else {
+        remainingCard.className = "stat-card remaining-positive";
+        const percentLeft = state.initialBudget > 0 ? Math.round((netRemaining / (state.initialBudget + totalIncome)) * 100) : 100;
+        remainingStatusText.textContent = `${percentLeft}% remaining available`;
+      }
+
+      // Progress Bar Calculation
+      const effectiveTotalFunds = Number(state.initialBudget) + totalIncome;
+      let spentPercentage = 0;
+      if (effectiveTotalFunds > 0) {
+        spentPercentage = Math.round((totalExpense / effectiveTotalFunds) * 100);
+      } else if (totalExpense > 0) {
+        spentPercentage = 100;
+      }
+
+      progressPercentageText.textContent = `${spentPercentage}% of available funds used`;
+      progressBar.style.width = `${Math.min(spentPercentage, 100)}%`;
+
+      if (spentPercentage >= 100) {
+        progressBar.className = "progress-fill danger";
+      } else if (spentPercentage >= 80) {
+        progressBar.className = "progress-fill warning";
+      } else {
+        progressBar.className = "progress-fill";
+      }
+
+      // Filtered Transactions for Search
+      const query = (searchInput.value || "").toLowerCase().trim();
+      const filtered = enrichedTransactions.filter(item => {
+        if (!query) return true;
+        return item.description.toLowerCase().includes(query) ||
+               item.category.toLowerCase().includes(query) ||
+               item.date.includes(query);
+      });
+
+      // Render Table
+      transactionsBody.innerHTML = "";
+
+      if (filtered.length === 0) {
+        emptyState.style.display = "block";
+        if (state.transactions.length > 0 && query) {
+          emptyState.querySelector("strong").textContent = "No matching transactions";
+          emptyState.querySelector("p").textContent = "Try searching for a different keyword or clear the search bar.";
+        } else {
+          emptyState.querySelector("strong").textContent = "No transactions recorded yet";
+          emptyState.querySelector("p").textContent = "Fill out the form on the left to record your first expense or ticket sale.";
+        }
+      } else {
+        emptyState.style.display = "none";
+
+        // Display in reverse chronological order (newest first) or ledger order
+        // Treasurers usually like to see the ledger entries with their point-in-time running total
+        filtered.forEach((tx) => {
+          const row = document.createElement("tr");
+
+          const isExpense = tx.type === "expense";
+          const amountSign = isExpense ? "-" : "+";
+          const amountClass = isExpense ? "amount-expense" : "amount-income";
+          const balanceClass = tx.runningTotal < 0 ? "balance-negative" : "balance-positive";
+
+          row.innerHTML = `
+            <td data-label="Date">${escapeHtml(tx.date)}</td>
+            <td data-label="Description">
+              <strong>${escapeHtml(tx.description)}</strong>
+            </td>
+            <td data-label="Category">
+              <span class="badge badge-category">${escapeHtml(tx.category)}</span>
+            </td>
+            <td data-label="Amount" class="text-right ${amountClass}">
+              ${amountSign}${formatMoney(tx.amount)}
+            </td>
+            <td data-label="Running Total" class="text-right running-balance ${balanceClass}">
+              ${formatMoney(tx.runningTotal)}
+            </td>
+            <td data-label="Action" class="text-center">
+              <button type="button" class="btn btn-danger" onclick="deleteTransaction('${tx.id}')" title="Delete item">
+                Delete
+              </button>
+            </td>
+          `;
+
+          transactionsBody.appendChild(row);
+        });
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Save Event Name & Starting Budget
+    saveEventDetailsBtn.addEventListener("click", () => {
+      const name = eventNameInput.value.trim();
+      const budgetVal = parseFloat(initialBudgetInput.value);
+
+      if (!name) {
+        showAlert("Please provide a name for this event so your team knows which event is being tracked.", "error");
+        eventNameInput.focus();
+        return;
+      }
+
+      if (isNaN(budgetVal) || budgetVal < 0) {
+        showAlert("Please enter a valid starting budget of $0.00 or higher.", "error");
+        initialBudgetInput.focus();
+        return;
+      }
+
+      state.eventName = name;
+      state.initialBudget = budgetVal;
+      saveState();
+      render();
+      showAlert("Event details updated successfully!", "success", 3000);
+    });
+
+    // Add Transaction
+    transactionForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const desc = transDescInput.value.trim();
+      const category = transCategoryInput.value;
+      const amount = parseFloat(transAmountInput.value);
+      const date = transDateInput.value;
+      const type = document.querySelector('input[name="transType"]:checked').value;
+
+      // Validations with friendly messages
+      if (!desc) {
+        showAlert("Oops! Please enter a short description so the committee knows what this item was for.", "error");
+        transDescInput.focus();
+        return;
+      }
+
+      if (isNaN(amount) || amount <= 0) {
+        showAlert("Please enter a valid positive amount greater than $0.00.", "error");
+        transAmountInput.focus();
+        return;
+      }
+
+      if (!date) {
+        showAlert("Please select a date for this transaction.", "error");
+        transDateInput.focus();
+        return;
+      }
+
+      // Check if this expense pushes over budget
+      if (type === "expense") {
+        const currentTotalSpent = state.transactions
+          .filter(t => t.type === "expense")
+          .reduce((sum, t) => sum + Number(t.amount), 0);
+        const currentTotalIncome = state.transactions
+          .filter(t => t.type === "income")
+          .reduce((sum, t) => sum + Number(t.amount), 0);
+        const currentRemaining = (state.initialBudget + currentTotalIncome) - currentTotalSpent;
+
+        if (amount > currentRemaining) {
+          showAlert(`Heads up! This $${amount.toFixed(2)} expense exceeds your remaining balance of ${formatMoney(currentRemaining)}. The transaction has been recorded so your books stay accurate.`, "warning", 8000);
+        } else {
+          showAlert("Transaction added to ledger!", "success", 3000);
+        }
+      } else {
+        showAlert("Income transaction recorded!", "success", 3000);
+      }
+
+      const newTransaction = {
+        id: "tx_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+        description: desc,
+        category: category,
+        amount: Number(amount.toFixed(2)),
+        date: date,
+        type: type,
+        timestamp: Date.now()
+      };
+
+      state.transactions.push(newTransaction);
+      saveState();
+      render();
+
+      // Reset form fields
+      transDescInput.value = "";
+      transAmountInput.value = "";
+      setTodayDate();
+      transDescInput.focus();
+    });
+
+    // Delete transaction
+    window.deleteTransaction = function(id) {
+      const itemToDelete = state.transactions.find(t => t.id === id);
+      const itemName = itemToDelete ? `"${itemToDelete.description}"` : "this item";
+
+      if (confirm(`Are you sure you want to remove ${itemName} from the budget?`)) {
+        state.transactions = state.transactions.filter(t => t.id !== id);
+        saveState();
+        render();
+        showAlert("Transaction was removed.", "info", 3000);
+      }
+    };
+
+    // Live search
+    searchInput.addEventListener("input", render);
+
+    // Export to CSV
+    exportCsvBtn.addEventListener("click", () => {
+      if (state.transactions.length === 0) {
+        showAlert("There are no transactions to export yet. Add some items first!", "warning");
+        return;
+      }
+
+      let csv = `Event: ${state.eventName}\r\n`;
+      csv += `Starting Budget: $${state.initialBudget.toFixed(2)}\r\n\r\n`;
+      csv += `Date,Description,Category,Type,Amount,Running Balance\r\n`;
+
+      let running = Number(state.initialBudget);
+      state.transactions.forEach(tx => {
+        const amt = Number(tx.amount);
+        if (tx.type === "expense") {
+          running -= amt;
+        } else {
+          running += amt;
+        }
+
+        // Clean commas and quotes in CSV
+        const cleanDesc = `"${tx.description.replace(/"/g, '""')}"`;
+        const cleanCat = `"${tx.category.replace(/"/g, '""')}"`;
+        const cleanType = tx.type === "expense" ? "Expense" : "Income";
+        const sign = tx.type === "expense" ? "-" : "+";
+
+        csv += `${tx.date},${cleanDesc},${cleanCat},${cleanType},${sign}${amt.toFixed(2)},${running.toFixed(2)}\r\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const filename = `${state.eventName.toLowerCase().replace(/[^a-z0-9]/g, "_")}_budget.csv`;
+
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showAlert(`Exported transactions to ${filename}!`, "success", 3000);
+    });
+
+    // Reset All Data
+    resetBtn.addEventListener("click", () => {
+      if (confirm("Would you like to clear all transactions and start a new event? This action cannot be undone.")) {
+        state.transactions = [];
+        saveState();
+        render();
+        showAlert("All transactions cleared. Ready for a new event budget!", "info", 4000);
+      }
+    });
+
+    // Initialization
+    function init() {
+      loadState();
+      setTodayDate();
+      render();
+    }
+
+    init();
+  </script>
+</body>
+</html>
